@@ -74,7 +74,16 @@ void mcp_reg_write(uint8_t reg, uint8_t value)
 	HAL_SPI_Transmit(&hspi2, tx, 3, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
 }
+uint8_t mcp_reg_read(uint8_t reg)
+{
+	uint8_t txrx[3] = { 0x41, reg, 0xff};
 
+	HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
+	HAL_SPI_TransmitReceive(&hspi2, txrx, txrx, 3, HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
+
+	return txrx[2];
+}
 /* USER CODE END 0 */
 
 /**
@@ -112,21 +121,26 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
 
+  /* USER CODE BEGIN WHILE */
   // ustaw GP0 jako wyjście
   mcp_reg_write(MCP_IODIR, 0xFE);
+  // włącz rezystor podciągający dla GP1
+  mcp_reg_write(MCP_GPPU, 0x02);
   while (1)
   {
-    // włącz diodę
-    mcp_reg_write(MCP_OLAT, 0x01);
-    HAL_Delay(500);
-    // wyłącz diodę
-    mcp_reg_write(MCP_OLAT, 0x00);
-    HAL_Delay(500);
-
+    if ((mcp_reg_read(MCP_GPIO) & 0x02) == 0) {
+      // włącz diodę
+      mcp_reg_write(MCP_OLAT, 0x01);
+    } else {
+      // wyłącz diodę
+      mcp_reg_write(MCP_OLAT, 0x00);
+    }
+    /* USER CODE END WHILE */
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
+
 }
 
 /**
