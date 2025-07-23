@@ -67,9 +67,13 @@ static void MX_SPI2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-
-
+void mcp_reg_write(uint8_t reg, uint8_t value)
+{
+	uint8_t tx[3] = { 0x40, reg, value };
+	HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
+	HAL_SPI_Transmit(&hspi2, tx, 3, HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
+}
 
 /* USER CODE END 0 */
 
@@ -109,26 +113,18 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   // ustaw GP0 jako wyjście
-  uint8_t gpio_config[3] = { 0x40, MCP_IODIR, 0xFE };
-  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
-  HAL_SPI_Transmit(&hspi2, gpio_config, 3, HAL_MAX_DELAY);
-  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
+  mcp_reg_write(MCP_IODIR, 0xFE);
   while (1)
   {
     // włącz diodę
-    uint8_t led_on[3] = { 0x40, MCP_OLAT, 0x01 };
-    HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(&hspi2, led_on, 3, HAL_MAX_DELAY);
-    HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
+    mcp_reg_write(MCP_OLAT, 0x01);
     HAL_Delay(500);
     // wyłącz diodę
-    uint8_t led_off[3] = { 0x40, MCP_OLAT, 0x00 };
-    HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(&hspi2, led_off, 3, HAL_MAX_DELAY);
-    HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
+    mcp_reg_write(MCP_OLAT, 0x00);
     HAL_Delay(500);
-    /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 }
