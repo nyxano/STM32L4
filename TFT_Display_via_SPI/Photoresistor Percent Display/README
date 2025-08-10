@@ -1,0 +1,1 @@
+A program was written to read data from a photoresistor and adjust a progress bar accordingly. As the ambient light changes, both the percentage value and the length of the bar update in real time. Brighter light results in a higher percentage and a longer progress bar. The electronic circuit was implemented using an STM32L4 microcontroller.
